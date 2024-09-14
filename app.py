@@ -43,17 +43,28 @@ def get_products_by_type(product_type):
 def check_product_by_manufacturer(manufacturer_name):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute('SELECT COUNT(*) FROM sportsstore WHERE manufacturer = %s;', (manufacturer_name,))
-    count = cur.fetchone()[0]
+    cur.execute('SELECT * FROM sportsstore WHERE manufacturer = %s;', (manufacturer_name,))
+    products = cur.fetchall()
     conn.close()
-    return jsonify({'count': count})
+    return jsonify({'products': products})
 
 @app.route('/top-customers', methods=['GET'])
 def get_top_customers():
     conn = get_db_connection()
     cur = conn.cursor()
-    # Seřadíme podle total_sales sestupně a vybereme 5 zákazníků
+    # Seřadím podle total_sales sestupně a vybereme 5 zákazníků
     cur.execute('SELECT customer_id, customer_name, registration_date, total_sales FROM customers ORDER BY total_sales DESC LIMIT 5;')
+    rows = cur.fetchall()
+    conn.close()
+    customers = [{'customer_id': row[0], 'customer_name': row[1], 'registration_date': row[2], 'total_sales': row[3]} for row in rows]
+    return jsonify(customers)
+
+@app.route('/customers', methods=['GET'])
+def get_all_customers():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    # Vybereme všechny zákazníky
+    cur.execute('SELECT customer_id, customer_name, registration_date, total_sales FROM customers ORDER BY customer_name ASC;')
     rows = cur.fetchall()
     conn.close()
     customers = [{'customer_id': row[0], 'customer_name': row[1], 'registration_date': row[2], 'total_sales': row[3]} for row in rows]

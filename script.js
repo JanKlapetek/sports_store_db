@@ -7,7 +7,7 @@ function getAllProducts() {
 }
 
 function getProductsByType() {
-    const type = prompt('Enter product type (Boty or Shoes or Fitness or Sports):');
+    const type = prompt('Enter product type (Ball, Shoes, Fitness, Sports):');
     if (type) {
         showLoading();
         fetch(`http://127.0.0.1:5000/products/${type}`)
@@ -24,16 +24,78 @@ function checkProductByManufacturer() {
         fetch(`http://127.0.0.1:5000/manufacturer/${manufacturer}`)
             .then(response => response.json())
             .then(data => {
-                if (data.count === 0) {
+                if (data.products.length === 0) {
                     alert(`No products found for manufacturer: ${manufacturer}`);
                 } else {
-                    alert(`There are ${data.count} products by manufacturer: ${manufacturer}`);
+                    clearTable();
+                    displayProducts(data.products);
                 }
                 hideLoading();
             })
             .catch(error => showError(error));
     }
 }
+
+function clearTable() {
+    const existingTable = document.querySelector('table');
+    if (existingTable) {
+        existingTable.remove();
+    }
+}
+
+function displayProducts(products) {
+    const table = document.createElement('table');
+    const headerRow = document.createElement('tr');
+    
+    // Assuming the product object has 'id', 'name', 'price', and 'manufacturer' fields
+    const headers = ['ID', 'Name', 'Price', 'Manufacturer'];
+    headers.forEach(headerText => {
+        const header = document.createElement('th');
+        header.textContent = headerText;
+        headerRow.appendChild(header);
+    });
+    table.appendChild(headerRow);
+
+    products.forEach(product => {
+        const row = document.createElement('tr');
+        Object.values(product).forEach(text => {
+            const cell = document.createElement('td');
+            cell.textContent = text;
+            row.appendChild(cell);
+        });
+        table.appendChild(row);
+    });
+
+    document.body.appendChild(table);
+}
+
+
+
+function getAllCustomers() {
+    showLoading();
+    fetch('http://127.0.0.1:5000/customers')
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById('result');
+            let customersHTML = '<ol>'; // Používáme očíslovaný seznam (HTML <ol>)
+
+            data.forEach((customer, index) => {
+                customersHTML += `
+                    <li>
+                        <strong>${customer.customer_name}</strong><br>
+                        Total Sales: ${customer.total_sales}<br>
+                        Registration Date: ${customer.registration_date}<br>
+                    </li>
+                `;
+            });
+
+            customersHTML += '</ol>';
+            resultDiv.innerHTML = customersHTML;
+            hideLoading();
+        })
+        .catch(error => showError(error));
+}
+
 
 function getTopCustomers() {
     showLoading();
